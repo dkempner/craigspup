@@ -498,14 +498,12 @@ export class Client {
 
       debug("request options set to: %o", requestOptions);
 
-      return self.request
-        .get(requestOptions)
-        .then((markup) => {
-          debug("retrieved posting %o", posting);
-          const details = _getPostingDetails(postingUrl, markup);
-          return resolve(details);
-        })
-        .catch(reject);
+      const curlCommand = `curl 'https://${requestOptions.hostname}${requestOptions.path}' --compressed`;
+      debug({ curlCommand });
+
+      const markup = execSync(curlCommand).toString();
+      const details = _getPostingDetails(postingUrl, markup);
+      return resolve(details);
     });
 
     exec = new Promise((resolve, reject) =>
@@ -572,7 +570,6 @@ export class Client {
     options = options || {};
 
     let exec;
-    const self = this;
 
     // create a Promise to execute the request
     exec = new Promise((resolve, reject) => {
@@ -590,10 +587,9 @@ export class Client {
       }
 
       const curlCommand = `curl 'https://${requestOptions.hostname}${requestOptions.path}' --compressed`;
+      debug({ curlCommand });
 
       const markup = execSync(curlCommand).toString();
-
-
       const postings = _getPostings(requestOptions, markup);
 
       return resolve(postings);
