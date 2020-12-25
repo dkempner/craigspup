@@ -4,6 +4,7 @@ import cheerio from "cheerio";
 import debugLog from "debug";
 import { Request } from "reqlib";
 import url from "url";
+import { execSync } from "child_process";
 import core from "./core";
 
 const debug = debugLog("craigslist");
@@ -453,16 +454,15 @@ function _getRequestOptions(client, options, query) {
     ].join("");
   }
 
+  // ensure we have headers...
+  requestOptions.headers = requestOptions.headers || {};
+
   // add cache control headers (if nocache is specified)
   if (options.nocache) {
-    // ensure we have headers...
-    requestOptions.headers = requestOptions.headers || {};
-
     // add headers to attempt to override cache controls
     requestOptions.headers[HEADER_CACHE_CONTROL] = DEFAULT_NO_CACHE;
     requestOptions.headers[HEADER_PRAGMA] = DEFAULT_NO_CACHE;
   }
-
   debug("setting request options: %o", requestOptions);
 
   return requestOptions;
@@ -589,15 +589,14 @@ export class Client {
         );
       }
 
-      return self.request
-        .get(requestOptions)
-        .then((markup) => {
-          const postings = _getPostings(requestOptions, markup);
-          debug("found %d postings", postings.length);
+      const curlCommand = `curl 'https://${requestOptions.hostname}${requestOptions.path}' --compressed`;
 
-          return resolve(postings);
-        })
-        .catch(reject);
+      const markup = execSync(curlCommand).toString();
+
+
+      const postings = _getPostings(requestOptions, markup);
+
+      return resolve(postings);
     });
 
     // execute!

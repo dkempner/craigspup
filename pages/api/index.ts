@@ -1,17 +1,11 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
-import craigslist from "node-craigslist";
+import { Client } from "../../services/node-craigslist";
 
 export default async (req, res) => {
-  const client = new craigslist.Client({
+  const client = new Client({
     city: "sandiego",
-    nocache: true,
   });
-  const puppySearch = await client.search(
-    {
-      secure: false,
-    },
-    "puppy"
-  );
+  const puppySearch = await client.search({}, "puppy");
 
-  res.send(puppySearch);
+  res.json(puppySearch);
 };
