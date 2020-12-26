@@ -4,7 +4,7 @@ import cheerio from "cheerio";
 import debugLog from "debug";
 import { Request } from "reqlib";
 import url from "url";
-import { execSync } from "child_process";
+import { exec as execAsync } from "child_process";
 import core from "./core";
 
 const debug = debugLog("craigslist");
@@ -501,9 +501,11 @@ export class Client {
       const curlCommand = `curl 'https://${requestOptions.hostname}${requestOptions.path}' --compressed`;
       debug({ curlCommand });
 
-      const markup = execSync(curlCommand).toString();
-      const details = _getPostingDetails(postingUrl, markup);
-      return resolve(details);
+
+      execAsync(curlCommand, { maxBuffer: 1024 * 3000 }, (error, stdout) => {
+        const details = _getPostingDetails(postingUrl, stdout);
+        return resolve(details);
+      });
     });
 
     exec = new Promise((resolve, reject) =>
@@ -589,10 +591,10 @@ export class Client {
       const curlCommand = `curl 'https://${requestOptions.hostname}${requestOptions.path}' --compressed`;
       debug({ curlCommand });
 
-      const markup = execSync(curlCommand).toString();
-      const postings = _getPostings(requestOptions, markup);
-
-      return resolve(postings);
+      execAsync(curlCommand, { maxBuffer: 1024 * 3000 }, (error, stdout) => {
+        const postings = _getPostings(requestOptions, stdout);
+        return resolve(postings);
+      });
     });
 
     // execute!

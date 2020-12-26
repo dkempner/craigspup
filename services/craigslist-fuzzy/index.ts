@@ -3,6 +3,7 @@ import { Client } from "../node-craigslist";
 
 export interface FuzzySearchItem {
   query: string;
+  hasPic: boolean;
 }
 
 export const fuzzySearch = async (queries: FuzzySearchItem[]) => {
@@ -16,21 +17,31 @@ export const fuzzySearch = async (queries: FuzzySearchItem[]) => {
 
   const distinct = {};
 
-  for await (const q of queries) {
-    const list = await client.search({}, q.query);
-    const filtered = list.filter((x) => {
-      if (distinct[x.pid]) return false;
+  const promises = queries.map(
+    (q) =>
+      new Promise((resolve) => {
+        client.search({ hasPic: q.hasPic }, q.query).then((list) => {
+          const filtered = list.filter((x) => {
+            if (distinct[x.pid]) return false;
 
-      distinct[x.pid] = true;
-      const thisDate = new Date(x.date);
-      return thisDate > greaterThanDate;
-    });
+            distinct[x.pid] = true;
+            const thisDate = new Date(x.date);
+            return thisDate > greaterThanDate;
+          });
 
-    for await (const f of filtered) {
-      const detail = await client.details(f);
-      final.push(detail);
-    }
-  }
+          const detailPromises = filtered.map((f) => {
+            const { location, price } = f;
+            return client.details(f).then((detail) => {
+              final.push({ ...detail, location, price });
+            });
+          });
+
+          Promise.all(detailPromises).then(resolve);
+        });
+      })
+  );
+
+  await Promise.all(promises);
 
   return final.sort(
     (a, b) => new Date(b.postedAt).getTime() - new Date(a.postedAt).getTime()
