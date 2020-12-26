@@ -15,18 +15,21 @@ export const getServerSideProps: GetServerSideProps = async () => {
 };
 
 const Puppies = ({ searchResults }) => (
-  <ul>
+  <div className="grid grid-cols-4 gap-10">
     {searchResults.map((r) => (
-      <li key={r.pid}>
-        <a href={r.url}>
-          <h2>
-            {`${r.title} - ${r.price} ${r.location}`}
-          </h2>
-          <img src={(r.images || [""])[0]} alt="" />
+      <div className="w-100 border border-dashed border-gray" key={r.pid}>
+        <a href={r.url} className="">
+          <h2>{`${r.title} - ${r.price} ${r.location}`}</h2>
+          <h3>{new Date(r.postedAt).toLocaleDateString("en-US")}</h3>
+          <img
+            className="place-self-center"
+            src={(r.images || [""])[0]}
+            alt=""
+          />
         </a>
-      </li>
+      </div>
     ))}
-  </ul>
+  </div>
 );
 
 export default Puppies;

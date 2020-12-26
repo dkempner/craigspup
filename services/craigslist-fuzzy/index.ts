@@ -9,7 +9,7 @@ export interface FuzzySearchItem {
 export const fuzzySearch = async (queries: FuzzySearchItem[]) => {
   const final = [];
   const greaterThanDate = new Date();
-  greaterThanDate.setDate(greaterThanDate.getDate() - 1);
+  greaterThanDate.setDate(greaterThanDate.getDate() - 2);
 
   const client = new Client({
     city: "sandiego",
