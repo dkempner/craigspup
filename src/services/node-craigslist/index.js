@@ -117,6 +117,14 @@ function _getPostingDetails(postingUrl, markup) {
       details.images.push(($(element).attr("href") || "").trim());
     });
 
+  // populate first image
+  $(".gallery")
+    .find("img")
+    .each((i, element) => {
+      details.images = details.images || [];
+      details.images.unshift(($(element).attr("src") || "").trim());
+    });
+
   // grab attributes if they exist
   $("div.mapAndAttrs")
     .find("p.attrgroup")
@@ -501,11 +509,14 @@ export class Client {
       const curlCommand = `curl 'https://${requestOptions.hostname}${requestOptions.path}' --compressed`;
       debug({ curlCommand });
 
-
-      return execAsync(curlCommand, { maxBuffer: 1024 * 3000 }, (error, stdout) => {
-        const details = _getPostingDetails(postingUrl, stdout);
-        return resolve(details);
-      });
+      return execAsync(
+        curlCommand,
+        { maxBuffer: 1024 * 3000 },
+        (error, stdout) => {
+          const details = _getPostingDetails(postingUrl, stdout);
+          return resolve(details);
+        }
+      );
     });
 
     exec = new Promise((resolve, reject) =>
@@ -591,10 +602,14 @@ export class Client {
       const curlCommand = `curl 'https://${requestOptions.hostname}${requestOptions.path}' --compressed`;
       debug({ curlCommand });
 
-      return execAsync(curlCommand, { maxBuffer: 1024 * 3000 }, (error, stdout) => {
-        const postings = _getPostings(requestOptions, stdout);
-        return resolve(postings);
-      });
+      return execAsync(
+        curlCommand,
+        { maxBuffer: 1024 * 3000 },
+        (error, stdout) => {
+          const postings = _getPostings(requestOptions, stdout);
+          return resolve(postings);
+        }
+      );
     });
 
     // execute!
