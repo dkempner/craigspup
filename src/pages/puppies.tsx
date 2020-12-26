@@ -1,11 +1,24 @@
 import { GetServerSideProps } from "next";
 import { fuzzySearch } from "../services/craigslist-fuzzy";
 
-export const getServerSideProps: GetServerSideProps = async () => {
-  const searchResults = await fuzzySearch([
-    { query: "puppy", hasPic: true },
-    { query: "puppies", hasPic: true },
-  ]);
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  const breeds = (context.query.breeds as string | undefined)?.split(",") || [
+    "",
+  ];
+  const cities = ["sandiego", "orangecounty", "losangeles"];
+  const queries = [];
+
+  breeds.forEach((breed) => {
+    cities.forEach((city) => {
+      queries.push({
+        city,
+        query: breed,
+        hasPic: true,
+      });
+    });
+  });
+
+  const searchResults = await fuzzySearch(queries);
 
   return {
     props: {

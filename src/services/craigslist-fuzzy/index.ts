@@ -3,6 +3,7 @@ import { Client } from "../node-craigslist";
 
 export interface FuzzySearchItem {
   query: string;
+  city: string;
   hasPic: boolean;
 }
 
@@ -11,15 +12,14 @@ export const fuzzySearch = async (queries: FuzzySearchItem[]) => {
   const greaterThanDate = new Date();
   greaterThanDate.setDate(greaterThanDate.getDate() - 2);
 
-  const client = new Client({
-    city: "sandiego",
-  });
-
   const distinct = {};
 
   const promises = queries.map(
     (q) =>
       new Promise((resolve) => {
+        const client = new Client({
+          city: q.city,
+        });
         client.search({ hasPic: q.hasPic }, q.query).then((list) => {
           const filtered = list.filter((x) => {
             if (distinct[x.pid]) return false;
