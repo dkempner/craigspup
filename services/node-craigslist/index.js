@@ -502,7 +502,7 @@ export class Client {
       debug({ curlCommand });
 
 
-      execAsync(curlCommand, { maxBuffer: 1024 * 3000 }, (error, stdout) => {
+      return execAsync(curlCommand, { maxBuffer: 1024 * 3000 }, (error, stdout) => {
         const details = _getPostingDetails(postingUrl, stdout);
         return resolve(details);
       });
@@ -591,7 +591,7 @@ export class Client {
       const curlCommand = `curl 'https://${requestOptions.hostname}${requestOptions.path}' --compressed`;
       debug({ curlCommand });
 
-      execAsync(curlCommand, { maxBuffer: 1024 * 3000 }, (error, stdout) => {
+      return execAsync(curlCommand, { maxBuffer: 1024 * 3000 }, (error, stdout) => {
         const postings = _getPostings(requestOptions, stdout);
         return resolve(postings);
       });
