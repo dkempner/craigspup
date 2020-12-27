@@ -7,6 +7,8 @@ export interface FuzzySearchItem {
   hasPic: boolean;
 }
 
+const cache = {};
+
 export const fuzzySearch = async (queries: FuzzySearchItem[]) => {
   const final = [];
   const greaterThanDate = new Date();
@@ -30,9 +32,16 @@ export const fuzzySearch = async (queries: FuzzySearchItem[]) => {
           });
 
           const detailPromises = filtered.map((f) => {
-            const { location, price } = f;
+            const { location, price, pid } = f;
+            if (cache[pid]) {
+              final.push(cache[pid]);
+              return Promise.resolve();
+            }
+
             return client.details(f).then((detail) => {
-              final.push({ ...detail, location, price });
+              const toAdd = { ...detail, location, price };
+              cache[pid] = toAdd;
+              final.push(toAdd);
             });
           });
 
