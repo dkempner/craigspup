@@ -5,7 +5,8 @@ import { fuzzySearch } from "../services/craigslist-fuzzy";
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const breeds = (context.query.breeds as string | undefined)?.split(",") || [
-    "",
+    "puppy",
+    "puppies",
   ];
 
   const cities = (context.query.cities as string | undefined)?.split(",") || [
