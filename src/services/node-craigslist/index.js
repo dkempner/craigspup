@@ -509,7 +509,7 @@ export class Client {
       const fullUrl = `https://${requestOptions.hostname}${requestOptions.path}`;
       debug({ fullUrl });
 
-      return curly.get(fullUrl).then((result) => {
+      return curly.get(fullUrl, { sslVerifyPeer: 0 }).then((result) => {
         const details = _getPostingDetails(postingUrl, result.data);
         return resolve(details);
       });
@@ -597,8 +597,7 @@ export class Client {
       const fullUrl = `https://${requestOptions.hostname}${requestOptions.path}`;
       debug({ fullUrl });
 
-
-      return curly.get(fullUrl).then((result) => {
+      return curly.get(fullUrl, { sslVerifyPeer: 0 }).then((result) => {
         const postings = _getPostings(requestOptions, result.data);
         return resolve(postings);
       });
