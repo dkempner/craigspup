@@ -1,4 +1,5 @@
 /* eslint-disable no-restricted-syntax */
+import d from 'debug';
 import { Client } from "../node-craigslist";
 
 export interface FuzzySearchItem {
@@ -7,6 +8,7 @@ export interface FuzzySearchItem {
   hasPic: boolean;
 }
 
+const debug = d("craigslist-fuzzy");
 const cache = {};
 
 export const fuzzySearch = async (queries: FuzzySearchItem[]) => {
@@ -15,6 +17,7 @@ export const fuzzySearch = async (queries: FuzzySearchItem[]) => {
   greaterThanDate.setDate(greaterThanDate.getDate() - 2);
 
   const distinct = {};
+  const listTimings = new Map();
 
   const promises = queries.map(
     (q) =>
@@ -22,7 +25,17 @@ export const fuzzySearch = async (queries: FuzzySearchItem[]) => {
         const client = new Client({
           city: q.city,
         });
+        listTimings.set(q, Date.now());
         client.search({ hasPic: q.hasPic }, q.query).then((list) => {
+          const timeEnd = Date.now();
+
+          const timeDiff = timeEnd - listTimings.get(q);
+
+          debug({
+            query: q,
+            timeDiff,
+          });
+
           const filtered = list.filter((x) => {
             if (distinct[x.pid]) return false;
 
