@@ -4,7 +4,7 @@ import cheerio from "cheerio";
 import debugLog from "debug";
 import { Request } from "reqlib";
 import url from "url";
-import { exec as execAsync } from "child_process";
+import { curly } from "node-libcurl";
 import core from "./core";
 
 const debug = debugLog("craigslist");
@@ -506,17 +506,13 @@ export class Client {
 
       debug("request options set to: %o", requestOptions);
 
-      const curlCommand = `curl 'https://${requestOptions.hostname}${requestOptions.path}' --compressed`;
-      debug({ curlCommand });
+      const fullUrl = `https://${requestOptions.hostname}${requestOptions.path}`;
+      debug({ fullUrl });
 
-      return execAsync(
-        curlCommand,
-        { maxBuffer: 1024 * 3000 },
-        (error, stdout) => {
-          const details = _getPostingDetails(postingUrl, stdout);
-          return resolve(details);
-        }
-      );
+      return curly.get(fullUrl).then((result) => {
+        const details = _getPostingDetails(postingUrl, result.data);
+        return resolve(details);
+      });
     });
 
     exec = new Promise((resolve, reject) =>
@@ -598,18 +594,14 @@ export class Client {
           )
         );
       }
+      const fullUrl = `https://${requestOptions.hostname}${requestOptions.path}`;
+      debug({ fullUrl });
 
-      const curlCommand = `curl 'https://${requestOptions.hostname}${requestOptions.path}' --compressed`;
-      debug({ curlCommand });
 
-      return execAsync(
-        curlCommand,
-        { maxBuffer: 1024 * 3000 },
-        (error, stdout) => {
-          const postings = _getPostings(requestOptions, stdout);
-          return resolve(postings);
-        }
-      );
+      return curly.get(fullUrl).then((result) => {
+        const postings = _getPostings(requestOptions, result.data);
+        return resolve(postings);
+      });
     });
 
     // execute!
