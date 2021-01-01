@@ -49,14 +49,16 @@ const Puppies = ({ searchResults, breeds, cities }) => {
         <div className="grid mb-8">
           <h1 className="place-self-center text-lg font-bold">{title}</h1>
         </div>
-        <div className="grid grid-cols-4 gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
           {searchResults.map((r) => (
-            <div className="w-100 border border-dashed border-gray" key={r.pid}>
+            <div className="w-100 p-2" key={r.pid}>
               <a target="_blank" href={r.url} className="">
-                <h2>{`${r.title} - ${r.price} ${r.location}`}</h2>
-                <h3>{new Date(r.postedAt).toLocaleDateString("en-US")}</h3>
+                <div className="text-center">
+                  <h2>{`${r.title} - ${r.price} ${r.location}`}</h2>
+                  <h3>{new Date(r.postedAt).toLocaleDateString("en-US")}</h3>
+                </div>
                 <img
-                  className="place-self-center max-h-72"
+                  className="max-h-72 mx-auto"
                   src={(r.images || [""])[0]}
                   alt=""
                 />
