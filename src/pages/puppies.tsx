@@ -49,7 +49,7 @@ const Puppies = ({ searchResults, breeds, cities }) => {
         <div className="grid mb-8">
           <h1 className="place-self-center text-lg font-bold">{title}</h1>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           {searchResults.map((r) => (
             <div className="w-100 p-2" key={r.pid}>
               <a target="_blank" href={r.url} className="">
