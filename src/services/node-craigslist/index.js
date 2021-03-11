@@ -511,6 +511,7 @@ export class Client {
 
       return curly.get(fullUrl, { sslVerifyPeer: 0 }).then((result) => {
         const details = _getPostingDetails(postingUrl, result.data);
+        debug({ details });
         return resolve(details);
       });
     });
@@ -599,6 +600,7 @@ export class Client {
 
       return curly.get(fullUrl, { sslVerifyPeer: 0 }).then((result) => {
         const postings = _getPostings(requestOptions, result.data);
+        debug({ postings });
         return resolve(postings);
       });
     });
