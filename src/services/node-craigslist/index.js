@@ -599,6 +599,7 @@ export class Client {
       debug({ fullUrl });
 
       return curly.get(fullUrl, { sslVerifyPeer: 0 }).then((result) => {
+        debug({ result });
         const postings = _getPostings(requestOptions, result.data);
         debug({ postings });
         return resolve(postings);
