@@ -61,6 +61,7 @@ const Puppies = ({ searchResults, breeds, cities }) => {
                   className="max-h-72 mx-auto"
                   src={(r.images || [""])[0]}
                   alt=""
+                  loading="lazy"
                 />
               </a>
             </div>
