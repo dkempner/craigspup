@@ -10,7 +10,6 @@ import core from "./core";
 const debug = debugLog("craigslist");
 const DEFAULT_BASE_HOST = "craigslist.org";
 const DEFAULT_CATEGORY = "sss";
-const DEFAULT_CATEGORY_DETAILS_INDEX = 1;
 const DEFAULT_NO_CACHE = "no-cache";
 const DEFAULT_PATH = "/search/";
 const DEFAULT_QUERYSTRING = "?sort=rel";
@@ -55,8 +54,6 @@ const QUERY_PARAM_QUERY = "&query=";
 const QUERY_PARAM_SEARCH_DISTANCE = "&search_distance=";
 const QUERY_PARAM_SEARCH_NEARBY = "&searchNearby=1";
 const QUERY_PARAM_SEARCH_TITLES_ONLY = "&srchType=T";
-const RE_HTML = /\.htm(l)?/i;
-const RE_TAGS_MAP = /map/i;
 
 /**
  * Accepts strong of HTML and parses that string to find key details.
