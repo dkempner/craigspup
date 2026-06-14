@@ -161,6 +161,16 @@ function _getPostings(options, markup) {
   const { secure } = options;
   const protocol = secure ? PROTOCOL_SECURE : PROTOCOL_INSECURE;
 
+  // extract images from JSON-LD (indexed by position)
+  const imagesByPosition = {};
+  try {
+    const ldJson = JSON.parse($("#ld_searchpage_results").html() || "{}");
+    (ldJson.itemListElement || []).forEach((item) => {
+      const imgs = item.item && item.item.image;
+      if (imgs) imagesByPosition[item.position] = Array.isArray(imgs) ? imgs : [imgs];
+    });
+  } catch (e) { /* ignore */ }
+
   $("li.cl-static-search-result").each((i, element) => {
     const href = $(element).find("a").attr("href") || "";
     const detailsUrl = url.parse(href);
@@ -171,17 +181,17 @@ function _getPostings(options, markup) {
     const pidMatch = href.match(/\/(\d+)\.html/);
     const pid = pidMatch ? pidMatch[1] : "";
 
-    const posting = {
+    postings.push({
       date: new Date().toISOString(),
       hasPic: true,
+      images: imagesByPosition[String(i)] || [],
       location: ($(element).find(".location").text() || "").trim(),
       pid,
+      postedAt: new Date().toISOString(),
       price: ($(element).find(".price").text() || "").trim(),
       title: ($(element).attr("title") || "").trim(),
       url: detailsUrl.format(),
-    };
-
-    postings.push(posting);
+    });
   });
 
   return postings;

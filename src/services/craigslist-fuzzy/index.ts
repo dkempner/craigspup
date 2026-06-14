@@ -1,5 +1,3 @@
-/* eslint-disable no-restricted-syntax */
-import d from 'debug';
 import { Client } from "../node-craigslist";
 
 export interface FuzzySearchItem {
@@ -8,62 +6,26 @@ export interface FuzzySearchItem {
   hasPic: boolean;
 }
 
-const debug = d("craigslist-fuzzy");
-const cache = {};
-
 export const fuzzySearch = async (queries: FuzzySearchItem[]) => {
   const final = [];
-  const greaterThanDate = new Date();
-  greaterThanDate.setDate(greaterThanDate.getDate() - 2);
-
   const distinct = {};
-  const listTimings = new Map();
 
-  const promises = queries.map(
-    (q) =>
-      new Promise((resolve) => {
-        const client = new Client({
-          city: q.city,
-        });
-        listTimings.set(q, Date.now());
-        client.search({ hasPic: q.hasPic }, q.query).then((list) => {
-          const timeEnd = Date.now();
-
-          const timeDiff = timeEnd - listTimings.get(q);
-
-          debug({
-            query: q,
-            timeDiff,
-          });
-
-          const filtered = list.filter((x) => {
-            if (distinct[x.pid]) return false;
-            distinct[x.pid] = true;
-            return true;
-          });
-
-          const detailPromises = filtered.map((f) => {
-            const { location, price, pid } = f;
-            if (cache[pid]) {
-              final.push(cache[pid]);
-              return Promise.resolve();
-            }
-
-            return client.details(f).then((detail) => {
-              const toAdd = { ...detail, location, price };
-              cache[pid] = toAdd;
-              final.push(toAdd);
+  await Promise.all(
+    queries.map(
+      (q) =>
+        new Promise((resolve) => {
+          const client = new Client({ city: q.city });
+          client.search({ hasPic: q.hasPic }, q.query).then((list) => {
+            list.forEach((x) => {
+              if (distinct[x.pid]) return;
+              distinct[x.pid] = true;
+              final.push(x);
             });
-          });
-
-          Promise.all(detailPromises).then(resolve);
-        });
-      })
+            resolve(null);
+          }).catch(() => resolve(null));
+        })
+    )
   );
 
-  await Promise.all(promises);
-
-  return final.sort(
-    (a, b) => new Date(b.postedAt).getTime() - new Date(a.postedAt).getTime()
-  );
+  return final;
 };

@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "src/pages/puppies.tsx": {
+      "maxDuration": 30
+    }
+  }
+}
