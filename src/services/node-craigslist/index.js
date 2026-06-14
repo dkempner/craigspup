@@ -164,7 +164,7 @@ function _getPostings(options, markup) {
   // extract images from JSON-LD (indexed by position)
   const imagesByPosition = {};
   try {
-    const ldJson = JSON.parse($("#ld_searchpage_results").html() || "{}");
+    const ldJson = JSON.parse($("#ld_searchpage_results").text() || "{}");
     (ldJson.itemListElement || []).forEach((item) => {
       const imgs = item.item && item.item.image;
       if (imgs) imagesByPosition[item.position] = Array.isArray(imgs) ? imgs : [imgs];
