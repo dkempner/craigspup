@@ -38,10 +38,8 @@ export const fuzzySearch = async (queries: FuzzySearchItem[]) => {
 
           const filtered = list.filter((x) => {
             if (distinct[x.pid]) return false;
-
             distinct[x.pid] = true;
-            const thisDate = new Date(x.date);
-            return thisDate > greaterThanDate;
+            return true;
           });
 
           const detailPromises = filtered.map((f) => {

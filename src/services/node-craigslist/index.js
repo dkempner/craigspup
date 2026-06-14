@@ -4,7 +4,7 @@ import cheerio from "cheerio";
 import debugLog from "debug";
 import { Request } from "reqlib";
 import url from "url";
-import { curly } from "node-libcurl";
+
 import core from "./core";
 
 const debug = debugLog("craigslist");
@@ -78,6 +78,12 @@ function _getPostingDetails(postingUrl, markup) {
   details.replyUrl = ($("#replylink").attr("href") || "").trim();
   details.title = ($("#titletextonly").text() || "").trim();
   details.url = postingUrl;
+
+  // grab any time[datetime] on the page as a fallback for postedAt
+  const firstDatetime = $("time[datetime]").first().attr("datetime");
+  if (firstDatetime) {
+    details.postedAt = new Date(firstDatetime);
+  }
 
   // populate posting info
   $("div.postinginfos")
@@ -154,57 +160,32 @@ function _getPostingDetails(postingUrl, markup) {
  * */
 function _getPostings(options, markup) {
   const $ = cheerio.load(markup);
-  // hostname = options.hostname,
-  let posting = {};
   const postings = [];
   const { secure } = options;
+  const protocol = secure ? PROTOCOL_SECURE : PROTOCOL_INSECURE;
 
-  $("div.content")
-    .find(".result-row")
-    .each((i, element) => {
-      const // introducing fix for #11 - Craigslist markup changed
-        details = $(element)
-          .find(".result-title")
-          .attr("href")
-          .split(/\//g)
-          .filter((term) => term.length)
-          .map((term) => term.split(RE_HTML)[0]);
-      // fix for #6 and #24
-      const detailsUrl = url.parse(
-        $(element).find(".result-title").attr("href")
-      );
+  $("li.cl-static-search-result").each((i, element) => {
+    const href = $(element).find("a").attr("href") || "";
+    const detailsUrl = url.parse(href);
 
-      // ensure hostname and protocol are properly set
-      detailsUrl.hostname = detailsUrl.hostname || options.hostname;
-      detailsUrl.protocol = secure ? PROTOCOL_SECURE : PROTOCOL_INSECURE;
+    detailsUrl.hostname = detailsUrl.hostname || options.hostname;
+    detailsUrl.protocol = protocol;
 
-      posting = {
-        category: details[DEFAULT_CATEGORY_DETAILS_INDEX],
-        coordinates: {
-          lat: $(element).attr("data-latitude"),
-          lon: $(element).attr("data-longitude"),
-        },
-        date: ($(element).find("time").attr("datetime") || "").trim(),
-        hasPic: RE_TAGS_MAP.test($(element).find(".result-tags").text() || ""),
-        location: ($(element).find(".result-hood").text() || "").trim(),
-        pid: ($(element).attr("data-pid") || "").trim(),
-        price: ($(element).find(".result-meta .result-price").text() || "")
-          .replace(/^\&\#x0024\;/g, "")
-          .trim(), // sanitize
-        title: ($(element).find(".result-title").text() || "").trim(),
-        url: detailsUrl.format(),
-      };
+    const pidMatch = href.match(/\/(\d+)\.html/);
+    const pid = pidMatch ? pidMatch[1] : "";
 
-      // make sure lat / lon is valid
-      if (
-        typeof posting.coordinates.lat === "undefined" ||
-        typeof posting.coordinates.lon === "undefined"
-      ) {
-        delete posting.coordinates;
-      }
+    const posting = {
+      date: new Date().toISOString(),
+      hasPic: true,
+      location: ($(element).find(".location").text() || "").trim(),
+      pid,
+      price: ($(element).find(".price").text() || "").trim(),
+      title: ($(element).attr("title") || "").trim(),
+      url: detailsUrl.format(),
+    };
 
-      postings.push(posting);
-    });
+    postings.push(posting);
+  });
 
   return postings;
 }
@@ -509,11 +490,20 @@ export class Client {
       const fullUrl = `https://${requestOptions.hostname}${requestOptions.path}`;
       debug({ fullUrl });
 
-      return curly.get(fullUrl, { sslVerifyPeer: 0 }).then((result) => {
-        const details = _getPostingDetails(postingUrl, result.data);
-        debug({ details });
-        return resolve(details);
-      });
+      return fetch(fullUrl, {
+          headers: {
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Accept-Encoding": "gzip, deflate, br",
+          }
+        })
+        .then((res) => res.text())
+        .then((data) => {
+          const details = _getPostingDetails(postingUrl, data);
+          debug({ details });
+          return resolve(details);
+        });
     });
 
     exec = new Promise((resolve, reject) =>
@@ -598,12 +588,21 @@ export class Client {
       const fullUrl = `https://${requestOptions.hostname}${requestOptions.path}`;
       debug({ fullUrl });
 
-      return curly.get(fullUrl, { sslVerifyPeer: 0 }).then((result) => {
-        debug({ result });
-        const postings = _getPostings(requestOptions, result.data);
-        debug({ postings });
-        return resolve(postings);
-      });
+      return fetch(fullUrl, {
+          headers: {
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Accept-Encoding": "gzip, deflate, br",
+          }
+        })
+        .then((res) => res.text())
+        .then((data) => {
+          debug({ data });
+          const postings = _getPostings(requestOptions, data);
+          debug({ postings });
+          return resolve(postings);
+        });
     });
 
     // execute!

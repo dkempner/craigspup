@@ -55,7 +55,7 @@ const Puppies = ({ searchResults, breeds, cities }) => {
               <a target="_blank" href={r.url} className="">
                 <div className="text-center">
                   <h2>{`${r.title} - ${r.price} ${r.location}`}</h2>
-                  <h3>{new Date(r.postedAt).toLocaleDateString("en-US")}</h3>
+                  <h3>{r.postedAt ? new Date(r.postedAt).toLocaleDateString("en-US") : ""}</h3>
                 </div>
                 <img
                   className="max-h-72 mx-auto"
